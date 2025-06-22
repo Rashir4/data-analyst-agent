@@ -18,8 +18,11 @@ class ChatModelConfig(BaseConfig):
     
 
 class LlamaCPPChatConfig(ChatModelConfig):
-    model_path: str = "./models/DeepSeek-R1-0528-Qwen3-8B-BF16.gguf"
-
+    model_path: str = "./models/Qwen3-0.6B-BF16.gguf"
+    verbose: bool = False
+    n_ctx: int = 2048
+   
+    
     def load_llm(self):
         from agent.modules import LlamaCPPChat
-        return LlamaCPPChat(model_path=self.model_path, temperature=self.temperature, max_tokens=self.max_tokens, n_ctx=self.n_ctx,chat_config=self)
+        return LlamaCPPChat(model_path=self.model_path, temperature=self.temperature, max_tokens=self.max_tokens, n_ctx=self.n_ctx, verbose=self.verbose, chat_config=self)

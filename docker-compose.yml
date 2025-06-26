@@ -1,7 +1,8 @@
 version: "3.9"
 
 volumes:
-  ollama-data:          # keeps downloaded models between rebuilds
+  ollama-data:
+    # keeps downloaded models between rebuilds
 
 services:
   # ───────────────── 1) Ollama daemon ───────────────────────────────
@@ -11,24 +12,19 @@ services:
     volumes:
       - ollama-data:/root/.ollama
     expose:
-      - "11434"         # internal port – no need to publish outside
-    healthcheck:        # wait until the daemon answers HTTP
-      test: ["CMD", "curl", "-sf", "http://localhost:11434"]
+      - "11434" # internal port – no need to publish outside
+    healthcheck:
+      # wait until the daemon answers HTTP
+      test: [ "CMD", "curl", "-sf", "http://localhost:11434" ]
       interval: 10s
       retries: 10
-    # Pull model once, then start daemon
-    entrypoint: >
-      bash -c "
-        ollama pull qwen3:1.7b &&
-        exec ollama serve
-      "
 
   # ───────────────── 2) Streamlit + LangChain app ───────────────────
   app:
     build: .
     container_name: analyst-app
     ports:
-      - "8501:8501"     # Streamlit UI → http://localhost:8501
+      - "8501:8501" # Streamlit UI → http://localhost:8501
     depends_on:
       ollama:
         condition: service_healthy
@@ -36,4 +32,4 @@ services:
       # point LangChain-Ollama to the daemon in the other container
       - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
-      - .:/app          # optional: live-reload code while developing
+      - .:/app # optional: live-reload code while developing

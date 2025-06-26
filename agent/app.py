@@ -7,13 +7,19 @@ config = AppSettings.load_from_yaml(cfg_path)
 st.set_page_config(page_title=config.page_title, layout="wide")
 
 
-def st_pretty(msg):
-    import io
-    from rich.console import Console
-
-    buf = io.StringIO()
-    Console(file=buf, force_terminal=False, color_system=None).print(msg)
-    st.code(buf.getvalue(), language="")
+def stream_args(question: str):
+    """
+    Return (*args, **kwargs) for agent.stream depending on graph type.
+    - LangGraph  DataAnalysisGraph  →  stream({"messages":[...]}, stream_mode="values")
+    - LangChain  (plain)            →  stream("question")
+    """
+    if config.graph.type == "DataAnalysisGraph":
+        args = ({"messages": [{"role": "user", "content": question}]},)
+        kwargs = {"stream_mode": "values"}
+    else:
+        args = (question,)
+        kwargs = {}
+    return args, kwargs
 
 
 uploaded = st.file_uploader("Upload CSV", type="csv")
@@ -31,7 +37,8 @@ if uploaded:
     question = st.chat_input("Ask a question")
     if question:
         with st.spinner("Thinking…"):
-            for message in st.session_state.agent.stream(question):
+            args, kwargs = stream_args(question)
+            for message in st.session_state.agent.stream(*args, **kwargs):
                 response = message["messages"][-1]
                 with st.chat_message("assistant"):
                     st.markdown(response.content)

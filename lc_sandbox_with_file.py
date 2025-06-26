@@ -12,7 +12,6 @@ Quick sanity-check for PyodideSandboxTool (langchain-sandbox PR-37).
 
 from langchain_sandbox import PyodideSandboxTool
 from agent.configs.chat_models_cfg import LlamaCPPChatConfig, OllamaChatConfig
-from agent.modules.chat_models import LlamaCPPChat
 from langgraph.prebuilt import create_react_agent
 
 # 1. create the sandbox tool -----------------------------------------------
@@ -32,17 +31,27 @@ sales_data = """
 2024-01-22,Sofa,Furniture,1,899.99,North
 2024-01-23,Shoes,Clothing,3,129.99,South"""
 
-sb_tool = PyodideSandboxTool(files={"/home/pyodide/sales.csv":str.encode(sales_data)}, allow_net=True)
+sb_tool = PyodideSandboxTool(
+    files={"/home/pyodide/sales.csv": str.encode(sales_data)}, allow_net=True
+)
 
 print("✅  Tool created:", sb_tool)
 
 # 2. code to run inside the sandbox -----------------------------------------
 # Test the LLamaCPPChat class
 
-chat_model=OllamaChatConfig().instantiate_model()
+chat_model = OllamaChatConfig().instantiate_model()
 
 agent = create_react_agent(
-    model=chat_model,tools=[sb_tool], prompt="Use the tool to analyse the data within it.")
+    model=chat_model,
+    tools=[sb_tool],
+    prompt="Use the tool to analyse the data within it.",
+)
 
-for message in agent.stream({"messages":"Please analyze the sales data and tell me: 1. What is the total revenue by category?2. Which region has the highest sales?3. What are the top 3 best-selling products by revenue?"}, stream_mode="values"):
+for message in agent.stream(
+    {
+        "messages": "Give me a summary of the data"
+    },
+    stream_mode="values",
+):
     message["messages"][-1].pretty_print()
